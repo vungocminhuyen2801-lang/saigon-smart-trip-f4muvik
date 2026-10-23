@@ -1,0 +1,744 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tài khoản | Saigon Smart Trip</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Thanh tab lịch trình */
+.trip-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 8px 2px 0;
+  border-bottom: 1px solid #e8e3f2;
+  margin-bottom: 20px;
+}
+
+.trip-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  max-width: 220px;
+  padding: 11px 14px;
+  border: 1px solid #e8e3f2;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: #f7f5fb;
+  color: #625d73;
+  cursor: pointer;
+  font: inherit;
+}
+
+.trip-tab.active {
+  background: #eee9ff;
+  color: #5545a0;
+  border-color: #d8cff7;
+  font-weight: 600;
+}
+
+.trip-tab-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.trip-tab-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 2px;
+}
+
+.trip-tab-add {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: #eee9ff;
+  color: #5545a0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.trip-content {
+  padding-top: 4px;
+}
+
+.trip-content h3 {
+  margin-top: 0;
+}
+    .account-page{max-width:850px;margin:45px auto;padding:20px;color:#29283a}
+    .account-card{background:white;border:1px solid #eeeaf5;border-radius:18px;padding:24px;margin:20px 0;box-shadow:0 8px 28px #2d23500a}
+    .account-form{display:grid;gap:14px}
+    .account-form label{display:grid;gap:7px}
+    .account-form input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ddd8e9;border-radius:10px;font:inherit}
+    .account-button{border:0;border-radius:10px;padding:12px 17px;background:#6483c7;color:white;cursor:pointer;font:inherit}
+    .account-button.secondary{background:#eee9ff;color:#454ba0}
+    .account-avatar{width:95px;height:95px;border-radius:50%;object-fit:cover;border:3px solid #eee9ff}
+    .account-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+    .account-list-item{padding:12px 0;border-bottom:1px solid #eeeaf5}
+    .account-muted{color:#777487;font-size:14px}
+    .account-back{color:#6556a8;text-decoration:none}
+    [hidden]{display:none!important}
+  </style>
+</head>
+<body>
+<main class="account-page">
+  
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  <a class="account-back" href="index.html">← Quay lại trang chủ</a>
+  <select id="language-account" aria-label="Choose language">
+    <option value="vi">🇻🇳 VI</option>
+    <option value="en">🇬🇧 EN</option>
+  </select>
+</div>
+
+  <h1>Tài khoản của tôi</h1>
+  <p class="account-muted">Quản lý hồ sơ, lịch trình và địa điểm yêu thích.</p>
+
+  <section id="auth-section" class="account-card">
+    <div class="account-tabs">
+      <button class="account-button" id="show-login" type="button">Đăng nhập</button>
+      <button class="account-button secondary" id="show-register" type="button">Tạo tài khoản</button>
+    </div>
+    <form id="auth-form" class="account-form">
+      <label id="name-label" hidden>Họ và tên
+        <input id="auth-name" autocomplete="name">
+      </label>
+      <label>Email
+        <input id="auth-email" type="email" required autocomplete="email">
+      </label>
+      <label>Mật khẩu (ít nhất 6 ký tự)
+        <input id="auth-password" type="password" required minlength="6">
+      </label>
+      <button class="account-button" id="auth-submit" type="submit">Đăng nhập</button>
+    </form>
+    <p id="auth-status" role="status"></p>
+    <p class="account-muted">Đây là bản demo, tài khoản chỉ lưu trên trình duyệt này. Không dùng mật khẩu thật.</p>
+  </section>
+
+  <section id="profile-section" hidden>
+    <div class="account-card">
+      <img id="profile-avatar" class="account-avatar" alt="Ảnh đại diện">
+      <h2 id="display-name"></h2>
+      <p id="display-email" class="account-muted"></p>
+      <button class="account-button secondary" id="logout-button" type="button">Đăng xuất</button>
+    </div>
+
+    <section class="account-card">
+      <h2>Chỉnh sửa hồ sơ</h2>
+      <form id="profile-form" class="account-form">
+        <label>Ảnh đại diện
+          <input id="avatar-file" type="file" accept="image/*">
+        </label>
+        <label>Họ và tên
+          <input id="profile-name" maxlength="60" required>
+        </label>
+        <button class="account-button" type="submit">Lưu thay đổi</button>
+      </form>
+      <p id="profile-status" role="status"></p>
+    </section>
+
+    <section class="account-card">
+      <h2>Lịch trình đã lưu</h2>
+      <div id="saved-trips"></div>
+    </section>
+
+    <section class="account-card">
+      <h2>Địa điểm yêu thích</h2>
+      <div id="saved-favorites"></div>
+    </section>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const accountTranslations = {
+  "Tài khoản của tôi": "My Account",
+  "Quản lý hồ sơ, lịch trình và địa điểm yêu thích.": "Manage your profile, itineraries, and favorite places.",
+  "← Quay lại trang chủ": "← Back to Home",
+  "Đăng nhập": "Log In",
+  "Tạo tài khoản": "Create Account",
+  "Họ và tên": "Full Name",
+  "Mật khẩu (ít nhất 6 ký tự)": "Password (at least 6 characters)",
+  "Tài khoản chỉ lưu trên trình duyệt này. Không dùng mật khẩu thật.": "This demo account is stored only in this browser. Do not use your real password.",
+  "Tài khoản của tôi": "My Account",
+  "Đăng xuất": "Log Out",
+  "Chỉnh sửa hồ sơ": "Edit Profile",
+  "Ảnh đại diện": "Profile Picture",
+  "Lưu thay đổi": "Save Changes",
+  "Lịch trình đã lưu": "Saved Itineraries",
+  "Địa điểm yêu thích": "Favorite Places",
+  "Chưa có lịch trình được lưu.": "No saved itineraries yet.",
+  "Các hoạt động trong chuyến đi": "Activities in This Trip",
+  "Chưa có thông tin hoạt động trong lịch trình này.": "No activities have been added to this itinerary.",
+  "Chưa có địa điểm yêu thích.": "No favorite places yet.",
+  "Địa điểm chưa có tên (ID: ": "Unnamed place (ID: ",
+  "Đã lưu thay đổi!": "Changes saved!",
+  "Hãy nhập họ và tên.": "Please enter your full name.",
+  "Email này đã được đăng ký.": "This email is already registered.",
+  "Email hoặc mật khẩu không đúng.": "Incorrect email or password.",
+  "Không dùng được tính năng đăng nhập. Hãy mở web bằng Live Server trong VS Code.": "Login is unavailable. Please open the website using Live Server in VS Code.",
+  "Chọn ảnh hợp lệ có dung lượng dưới 1 MB nhé.": "Choose a valid image smaller than 1 MB.",
+  "Bắt đầu: ": "Start: ",
+  "Kết thúc: ": "End: ",
+  "Ngày đi: ": "Travel date: ",
+  "Ngân sách: ": "Budget: ",
+  "Tạo mới": "New Itinerary",
+  "Đặt tên cho lịch trình mới:": "Enter a name for the new itinerary:",
+  "Bạn hãy nhập tên lịch trình nha!": "Please enter an itinerary name!",
+  "Hoạt động": "Activity",
+  "VNĐ": "VND",
+  "Chưa có thông tin chuyến đi.": "No trip information available.",
+  "Chưa có hoạt động trong lịch trình này. Bà có thể tạo lịch trình trên trang chủ để thêm địa điểm và giờ hoạt động.": "No activities in this itinerary yet. Create an itinerary on the home page to add places and activity times.",
+  "Xóa lịch trình này": "Delete this itinerary",
+  "Lịch trình của tôi": "My itinerary",
+  "Chưa có hoạt động trong lịch trình này.": "No activities in this itinerary yet.",
+  "Tạo tài khoản thành công!": "Account created successfully!",
+  "Chưa có thông tin chuyến đi.": "No trip information available."
+
+};
+
+
+function translateAccountText(text, lang) {
+  const reverseTranslations = Object.fromEntries(
+    Object.entries(accountTranslations).map(([vi, en]) => [en, vi])
+  );
+
+  const dictionary = lang === "en"
+    ? accountTranslations
+    : reverseTranslations;
+
+  let result = text;
+
+  // Dịch các cụm dài trước để tránh thay thế sai
+  const entries = Object.entries(dictionary)
+    .sort((a, b) => b[0].length - a[0].length);
+
+  for (const [source, target] of entries) {
+    result = result.split(source).join(target);
+  }
+
+  if (lang === "en") {
+    result = result
+      .replaceAll("Chưa có hoạt động trong lịch trình này. Bà có thể tạo lịch trình trên trang chủ để thêm địa điểm và giờ hoạt động.", "No activities in this itinerary yet. Create an itinerary on the home page to add places and activity times.")
+      .replaceAll("Chưa có thông tin chuyến đi.", "No trip information available.")
+      .replaceAll("Chưa có hoạt động trong lịch trình này.", "No activities in this itinerary yet.")
+      .replaceAll("Xóa lịch trình này", "Delete this itinerary")
+      .replaceAll("Lịch trình của tôi", "My itinerary")
+      .replaceAll("Đã lưu lịch trình", "Itinerary saved")
+      .replaceAll("Tạo tài khoản thành công!", "Account created successfully!")
+      .replaceAll("Chưa có thông tin chuyến đi.", "No trip information available.")
+      .replaceAll("Bà có chắc muốn xóa lịch trình", "Are you sure you want to delete the itinerary")
+      .replaceAll(" không?", "?");
+  }
+
+  return result;
+}
+
+function applyAccountLanguage() {
+  const lang = localStorage.getItem("saigon-language") || "vi";
+  document.documentElement.lang = lang;
+
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT
+  );
+
+  let node;
+
+  while ((node = walker.nextNode())) {
+    if (node.parentElement?.closest("script, style")) continue;
+
+    // Bỏ qua các lựa chọn ngôn ngữ
+    if (node.parentElement?.closest("#language-account")) continue;
+
+    node.nodeValue = translateAccountText(node.nodeValue, lang);
+  }
+
+  // Dịch thuộc tính trợ năng và mô tả ảnh
+  document.querySelectorAll("[aria-label], [title], img[alt]").forEach(element => {
+    for (const attribute of ["aria-label", "title", "alt"]) {
+      if (element.hasAttribute(attribute)) {
+        element.setAttribute(
+          attribute,
+          translateAccountText(element.getAttribute(attribute), lang)
+        );
+      }
+    }
+  });
+
+  $("language-account").value = lang;
+}
+
+
+const USERS = "saigon-demo-users";
+const PROFILE = "saigon-account-profile";
+const CURRENT = "saigon-account-current";
+let mode = "login";
+let avatarData = "";
+
+function read(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
+function makeAvatar(name) {
+  return "https://ui-avatars.com/api/?name=" +
+    encodeURIComponent(name) + "&background=eee9ff&color=6556a8";
+}
+function getUsers() { return read(USERS, []); }
+function getProfile() { return read(PROFILE, null); }
+function showMode(nextMode) {
+  mode = nextMode;
+  $("name-label").hidden = mode !== "register";
+  $("auth-name").required = mode === "register";
+  $("auth-submit").textContent = mode === "register" ? "Tạo tài khoản" : "Đăng nhập";
+  $("auth-password").autocomplete = mode === "register" ? "new-password" : "current-password";
+  $("auth-status").textContent = "";
+}
+
+function showPage() {
+  const loggedIn = Boolean(
+    localStorage.getItem(CURRENT) && getProfile()
+  );
+
+  $("auth-section").hidden = loggedIn;
+  $("profile-section").hidden = !loggedIn;
+  if (!loggedIn) return;
+
+  const p = getProfile();
+
+  $("profile-avatar").src = p.avatar || makeAvatar(p.name);
+  $("display-name").textContent = p.name;
+  $("display-email").textContent = p.email;
+  $("profile-name").value = p.name;
+  avatarData = p.avatar || makeAvatar(p.name);
+
+  // HIỂN THỊ LỊCH TRÌNH DƯỚI DẠNG TAB
+  let activeTripId = null;
+
+  function renderSavedTrips() {
+    const tripList = $("saved-trips");
+    tripList.replaceChildren();
+
+    const trips = read("saigon-trip-details", null);
+    const allTrips = Array.isArray(trips)
+      ? trips
+      : trips ? [trips] : [];
+
+    // Bổ sung ID cho lịch trình cũ chưa có ID
+    allTrips.forEach((trip, index) => {
+      if (!trip.id) trip.id = "old-trip-" + index;
+    });
+
+    if (!allTrips.length) {
+      activeTripId = null;
+      const empty = document.createElement("p");
+      empty.textContent = "Chưa có lịch trình được lưu.";
+      tripList.append(empty);
+      return;
+    }
+
+    if (!allTrips.some(t => String(t.id) === String(activeTripId))) {
+      activeTripId = allTrips[0].id;
+    }
+
+    // Lưu lại nếu dữ liệu cũ vừa được bổ sung ID
+    localStorage.setItem("saigon-trip-details", JSON.stringify(allTrips));
+
+    const tabBar = document.createElement("div");
+    tabBar.className = "trip-tab-bar";
+
+    allTrips.forEach((trip, index) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "trip-tab" +
+        (String(trip.id) === String(activeTripId) ? " active" : "");
+
+      const tabName = document.createElement("span");
+      tabName.className = "trip-tab-name";
+      tabName.textContent = trip.name || "Lịch trình " + (index + 1);
+      tab.append(tabName);
+
+      const close = document.createElement("span");
+      close.className = "trip-tab-close";
+      close.textContent = "×";
+      close.title = "Xóa lịch trình này";
+      close.setAttribute("role", "button");
+      close.setAttribute("aria-label", "Xóa " + tabName.textContent);
+
+      close.addEventListener("click", event => {
+        event.stopPropagation();
+
+        if (!confirm('Bà có chắc muốn xóa lịch trình "' +
+          (trip.name || "Lịch trình " + (index + 1)) + '" không?')) {
+          return;
+        }
+
+        const remaining = allTrips.filter(
+          t => String(t.id) !== String(trip.id)
+        );
+
+        localStorage.setItem(
+          "saigon-trip-details",
+          JSON.stringify(remaining)
+        );
+
+        activeTripId = remaining.length ? remaining[0].id : null;
+        renderSavedTrips();
+      });
+
+      tab.append(close);
+
+      tab.addEventListener("click", () => {
+        activeTripId = trip.id;
+        renderSavedTrips();
+      });
+
+      tabBar.append(tab);
+    });
+
+    const addButton = document.createElement("button");
+    addButton.type = "button";
+    addButton.className = "trip-tab-add";
+    addButton.textContent = "+ Tạo mới";
+
+    addButton.addEventListener("click", () => {
+      const name = prompt("Đặt tên cho lịch trình mới:");
+      if (name === null) return;
+
+      const cleanName = name.trim();
+      if (!cleanName) {
+        alert("Bà hãy nhập tên lịch trình nha!");
+        return;
+      }
+
+      const newTrip = {
+        id: Date.now(),
+        name: cleanName,
+        date: "",
+        budget: 0,
+        schedule: []
+      };
+
+      allTrips.push(newTrip);
+      localStorage.setItem(
+        "saigon-trip-details",
+        JSON.stringify(allTrips)
+      );
+
+      activeTripId = newTrip.id;
+      renderSavedTrips();
+    });
+
+    tabBar.append(addButton);
+    tripList.append(tabBar);
+
+    // Nội dung của tab đang được chọn
+    const selectedTrip = allTrips.find(
+      t => String(t.id) === String(activeTripId)
+    );
+
+    if (!selectedTrip) return;
+
+    const content = document.createElement("div");
+    content.className = "trip-content";
+
+    const title = document.createElement("h3");
+    title.textContent = selectedTrip.name || "Lịch trình của tôi";
+    content.append(title);
+
+    const info = document.createElement("p");
+    info.className = "account-muted";
+
+    const infoParts = [];
+    if (selectedTrip.date) {
+      infoParts.push("📅 Ngày đi: " + selectedTrip.date);
+    }
+    if (selectedTrip.budget != null) {
+      infoParts.push(
+        "💰 Ngân sách: " +
+        Number(selectedTrip.budget).toLocaleString("vi-VN") + " VNĐ"
+      );
+    }
+
+    info.textContent = infoParts.join(" · ") || "Chưa có thông tin chuyến đi.";
+    content.append(info);
+
+    const activities = Array.isArray(selectedTrip.schedule)
+      ? selectedTrip.schedule
+      : Array.isArray(selectedTrip.places)
+        ? selectedTrip.places : [];
+
+    if (!activities.length) {
+      const empty = document.createElement("p");
+      empty.textContent =
+        "Chưa có hoạt động trong lịch trình này. Bà có thể tạo lịch trình trên trang chủ để thêm địa điểm và giờ hoạt động.";
+      content.append(empty);
+    } else {
+      const heading = document.createElement("h4");
+      heading.textContent = "Các hoạt động trong chuyến đi";
+      content.append(heading);
+
+      activities.forEach((activity, index) => {
+        const item = document.createElement("div");
+        item.className = "account-list-item";
+
+        const name = document.createElement("strong");
+        name.textContent = (index + 1) + ". " +
+          (typeof activity === "string"
+            ? activity
+            : activity.name || "Hoạt động");
+        item.append(name);
+
+        if (typeof activity === "object" && activity !== null) {
+          const details = [];
+
+          if (activity.date) details.push("📅 " + activity.date);
+          if (activity.start) details.push("🕒 Bắt đầu: " + activity.start);
+          if (activity.end) details.push("🕒 Kết thúc: " + activity.end);
+          if (activity.address) details.push("📍 " + activity.address);
+
+          if (activity.price != null) {
+            details.push(
+              "💰 " + Number(activity.price).toLocaleString("vi-VN") + " VNĐ"
+            );
+          }
+
+          if (details.length) {
+            const detail = document.createElement("p");
+            detail.className = "account-muted";
+            detail.textContent = details.join(" · ");
+            item.append(detail);
+          }
+        }
+
+        content.append(item);
+      });
+    }
+
+    tripList.append(content);
+  }
+
+  // Gọi lại khi mở trang tài khoản
+  renderSavedTrips();
+
+  // HIỂN THỊ TÊN ĐỊA ĐIỂM YÊU THÍCH THEO ID
+  const favoriteNames = {
+    1: "Dinh Độc Lập",
+    2: "Nhà thờ Đức Bà",
+    3: "Chợ Bến Thành",
+    4: "Phố đi bộ Nguyễn Huệ",
+    5: "Thảo Cầm Viên",
+    6: "Bưu điện Thành phố",
+    101: "Bánh Bèo Huế O Trinh",
+    102: "Cơm tấm Dì Tám",
+    103: "Phở Hòa Pasteur",
+    104: "Hủ Tiếu Hồng Phát",
+    105: "Phở Miến gà Kỳ Đồng",
+    106: "Bánh Mì Huynh Hoa",
+    107: "Bánh Xèo 46A",
+    108: "Chè Hiển Khánh",
+    110: "Cơm Tấm Sà Bì Chưởng"
+  };
+
+  const favorites = read("saigon-favorites", []);
+  const favoriteList = $("saved-favorites");
+  favoriteList.replaceChildren();
+
+  if (!Array.isArray(favorites) || !favorites.length) {
+    favoriteList.textContent = "Chưa có địa điểm yêu thích.";
+  } else {
+    favorites.forEach(id => {
+      const item = document.createElement("div");
+      item.className = "account-list-item";
+
+      const name = document.createElement("strong");
+      name.textContent =
+        "♡ " + (favoriteNames[id] || favoriteNames[Number(id)] ||
+        "Địa điểm chưa có tên (ID: " + id + ")");
+
+      item.append(name);
+      favoriteList.append(item);
+    });
+  }
+}
+
+  const favorites = read("saigon-favorites", []);
+  const favoriteList = $("saved-favorites");
+  favoriteList.replaceChildren();
+  if (!Array.isArray(favorites) || !favorites.length) {
+    favoriteList.textContent = "Chưa có địa điểm yêu thích.";
+  } else {
+    favorites.forEach(id => {
+      const item = document.createElement("div");
+      item.className = "account-list-item";
+      item.textContent = "Địa điểm #" + id;
+      favoriteList.append(item);
+    });
+  }
+
+
+async function hashPassword(password) {
+  const bytes = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+$("show-login").addEventListener("click", () => showMode("login"));
+$("show-register").addEventListener("click", () => showMode("register"));
+
+$("auth-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const email = $("auth-email").value.trim().toLowerCase();
+  const password = $("auth-password").value;
+  const users = getUsers();
+
+  try {
+    const passwordHash = await hashPassword(password);
+    if (mode === "register") {
+      const name = $("auth-name").value.trim();
+      if (!name) { $("auth-status").textContent = "Hãy nhập họ và tên."; return; }
+      if (users.some(user => user.email === email)) {
+        $("auth-status").textContent = "Email này đã được đăng ký.";
+        return;
+      }
+      users.push({email, passwordHash, name, avatar: makeAvatar(name)});
+      localStorage.setItem(USERS, JSON.stringify(users));
+      $("auth-status").textContent = "Tạo tài khoản thành công!";
+    } else {
+      const user = users.find(u => u.email === email && u.passwordHash === passwordHash);
+      if (!user) {
+        $("auth-status").textContent = "Email hoặc mật khẩu không đúng.";
+        return;
+      }
+    }
+
+    const user = getUsers().find(u => u.email === email);
+    localStorage.setItem(PROFILE, JSON.stringify({
+      name: user.name || email.split("@")[0],
+      email: user.email,
+      avatar: user.avatar || makeAvatar(user.name || email)
+    }));
+    localStorage.setItem(CURRENT, email);
+    showPage();
+  } catch (error) {
+    $("auth-status").textContent =
+      "Không dùng được tính năng đăng nhập. Hãy mở web bằng Live Server trong VS Code.";
+  }
+});
+
+$("avatar-file").addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/") || file.size > 1024 * 1024) {
+    $("profile-status").textContent = "Chọn ảnh hợp lệ có dung lượng dưới 1 MB nhé.";
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    avatarData = reader.result;
+    $("profile-avatar").src = avatarData;
+  };
+  reader.readAsDataURL(file);
+});
+
+$("profile-form").addEventListener("submit", event => {
+  event.preventDefault();
+  const p = getProfile();
+  p.name = $("profile-name").value.trim();
+  p.avatar = avatarData || p.avatar;
+  localStorage.setItem(PROFILE, JSON.stringify(p));
+
+  const users = getUsers();
+  const user = users.find(u => u.email === p.email);
+  if (user) {
+    user.name = p.name;
+    user.avatar = p.avatar;
+    localStorage.setItem(USERS, JSON.stringify(users));
+  }
+  $("profile-status").textContent = "Đã lưu thay đổi!";
+  showPage();
+});
+
+$("logout-button").addEventListener("click", () => {
+  localStorage.removeItem(CURRENT);
+  showPage();
+});
+
+
+$("logout-button").addEventListener("click", () => {
+  localStorage.removeItem(CURRENT);
+  showPage();
+});
+
+// Đồng bộ ngôn ngữ
+$("language-account").addEventListener("change", () => {
+  localStorage.setItem("saigon-language", $("language-account").value);
+  applyAccountLanguage();
+  showPage();
+});
+
+window.addEventListener("storage", event => {
+  if (event.key === "saigon-language") {
+    applyAccountLanguage();
+    showPage();
+  }
+});
+
+$("logout-button").addEventListener("click", () => {
+  localStorage.removeItem(CURRENT);
+  showPage();
+});
+
+$("language-account").addEventListener("change", () => {
+  const lang = $("language-account").value;
+  localStorage.setItem("saigon-language", lang);
+  applyAccountLanguage();
+  showPage();
+});
+
+window.addEventListener("storage", event => {
+  if (event.key === "saigon-language") {
+    applyAccountLanguage();
+    showPage();
+  }
+});
+
+// Dịch lại nội dung mới được tạo như tab lịch trình
+const accountLanguageObserver = new MutationObserver(() => {
+  const lang = localStorage.getItem("saigon-language") || "vi";
+  if (lang !== "vi" && lang !== "en") return;
+
+  // Chỉ xử lý khi có nội dung mới; tránh quan sát thay đổi thuộc tính
+  applyAccountLanguage();
+});
+
+accountLanguageObserver.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+showMode("login");
+showPage();
+applyAccountLanguage();
+</script>
+</body>
+</html>
+
+showMode("login");
+showPage();
+renderSavedTrips();
+</script>
+</body>
+</html>
